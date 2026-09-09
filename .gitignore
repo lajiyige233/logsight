@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# PyCharm project settings
+.idea/
+
+# Keep the example log used by this project
+!sample_data/access.log
