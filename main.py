@@ -1,13 +1,13 @@
 from pathlib import Path
 from logsight.analyzer import analyze_records
-from logsight.parser import parser_line
+from logsight.parser import parse_nginx_line
 
-log_path = Path(__file__).parent / "sample_data" / "access.log"
+log_path = Path(__file__).parent / "sample_data" / "nginx_access.log"
 records = []
 
 with log_path.open(encoding="utf-8") as file:
     for line in file:
-        result = parser_line(line)
+        result = parse_nginx_line(line)
 
         if result is not None:
             records.append(result)
