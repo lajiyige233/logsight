@@ -40,6 +40,7 @@ def print_summary(summary: dict) -> None:
     for ip, count in summary["top_ips"]:
         print(f"  {ip}: {count} 次")
 
+
 def print_anomalies(anomalies: list[dict]) -> None:
     """在终端输出异常检测结果。"""
     print("异常检测结果：")
@@ -68,6 +69,7 @@ def print_anomalies(anomalies: list[dict]) -> None:
                 "  [中] IP 请求次数过多："
                 f"{anomaly['ip']}，共 {anomaly['count']} 次"
             )
+
 
 def main(argv: list[str] | None = None) -> None:
     """处理命令行参数并运行日志分析。"""
@@ -100,4 +102,3 @@ def main(argv: list[str] | None = None) -> None:
 
     print_summary(summary)
     print_anomalies(anomalies)
-    print_summary(summary)

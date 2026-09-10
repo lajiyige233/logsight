@@ -15,7 +15,7 @@ def test_cli_analyzes_simple_log(tmp_path, capsys):
 
     output = capsys.readouterr().out
 
-    assert "有效请求总数： 1" in output
+    assert output.count("有效请求总数： 1") == 1
     assert "200: 1" in output
     assert "GET /api/users: 1 次" in output
     assert "192.168.1.10: 1 次" in output
