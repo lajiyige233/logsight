@@ -19,6 +19,8 @@ def test_cli_analyzes_simple_log(tmp_path, capsys):
     assert "200: 1" in output
     assert "GET /api/users: 1 次" in output
     assert "192.168.1.10: 1 次" in output
+    assert "异常检测结果：" in output
+    assert "未发现异常" in output
 
 
 def test_cli_rejects_missing_file(capsys):
