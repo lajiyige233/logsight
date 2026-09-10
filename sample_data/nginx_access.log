@@ -1,0 +1,5 @@
+192.168.1.10 - - [09/Sep/2026:20:15:30 +0800] "GET /api/users HTTP/1.1" 200 512 "https://example.com/" "Mozilla/5.0"
+192.168.1.11 - - [09/Sep/2026:20:15:31 +0800] "POST /api/login HTTP/1.1" 401 128 "-" "Mozilla/5.0"
+192.168.1.10 - - [09/Sep/2026:20:15:32 +0800] "GET /api/search?q=python HTTP/1.1" 200 1024 "-" "curl/8.0"
+192.168.1.12 - - [09/Sep/2026:20:15:33 +0800] "GET /api/orders HTTP/1.1" 500 64 "-" "Mozilla/5.0"
+这是一行损坏的日志

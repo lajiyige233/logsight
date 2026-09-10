@@ -221,4 +221,4 @@ __marimo__/
 .idea/
 
 # Keep the example log used by this project
-!sample_data/access.log
+!sample_data/*.log
