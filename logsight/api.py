@@ -1,11 +1,13 @@
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from openai import OpenAIError
 from pydantic import BaseModel, Field
 
 from logsight.analyzer import analyze_records
 from logsight.parser import parser_line, parse_nginx_line
 from logsight.detector import detect_anomalies
+from logsight.llm_reporter import generate_report
 
 
 app = FastAPI(
@@ -20,6 +22,7 @@ class AnalyzeRequest(BaseModel):
 
     log_format: Literal["simple", "nginx"] = "nginx"
     lines: list[str] = Field(min_length=1, max_length=10_000)
+    include_report: bool = False
 
 
 @app.get("/health")
@@ -49,6 +52,21 @@ def analyze_logs(request: AnalyzeRequest) -> dict:
 
     summary = analyze_records(records)
     anomalies = detect_anomalies(records)
+    report = None
+
+    if request.include_report:
+        try:
+            report = generate_report(summary, anomalies)
+        except RuntimeError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=str(exc),
+            ) from exc
+        except OpenAIError as exc:
+            raise HTTPException(
+                status_code=502,
+                detail="LLM 服务暂时不可用",
+            ) from exc
 
     return {
         "log_format": request.log_format,
@@ -56,4 +74,5 @@ def analyze_logs(request: AnalyzeRequest) -> dict:
         "invalid_lines": invalid_lines,
         "summary": summary,
         "anomalies": anomalies,
+        "report": report,
     }
