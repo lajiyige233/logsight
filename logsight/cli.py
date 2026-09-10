@@ -3,6 +3,7 @@ from pathlib import Path
 
 from logsight.analyzer import analyze_records
 from logsight.parser import parser_line, parse_nginx_line
+from logsight.detector import detect_anomalies
 
 
 def load_records(log_path: Path, log_format: str) -> list[dict]:
@@ -39,6 +40,34 @@ def print_summary(summary: dict) -> None:
     for ip, count in summary["top_ips"]:
         print(f"  {ip}: {count} 次")
 
+def print_anomalies(anomalies: list[dict]) -> None:
+    """在终端输出异常检测结果。"""
+    print("异常检测结果：")
+
+    if not anomalies:
+        print("  未发现异常")
+        return
+
+    for anomaly in anomalies:
+        anomaly_type = anomaly["type"]
+
+        if anomaly_type == "high_server_error_rate":
+            print(
+                "  [高] 5xx 错误率过高："
+                f"{anomaly['value']:.2%}"
+            )
+
+        elif anomaly_type == "slow_requests":
+            print(
+                "  [中] 检测到慢请求："
+                f"{anomaly['count']} 条"
+            )
+
+        elif anomaly_type == "high_frequency_ip":
+            print(
+                "  [中] IP 请求次数过多："
+                f"{anomaly['ip']}，共 {anomaly['count']} 次"
+            )
 
 def main(argv: list[str] | None = None) -> None:
     """处理命令行参数并运行日志分析。"""
@@ -67,4 +96,8 @@ def main(argv: list[str] | None = None) -> None:
 
     records = load_records(args.log_file, args.log_format)
     summary = analyze_records(records)
+    anomalies = detect_anomalies(records)
+
+    print_summary(summary)
+    print_anomalies(anomalies)
     print_summary(summary)

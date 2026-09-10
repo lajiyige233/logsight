@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from logsight.analyzer import analyze_records
 from logsight.parser import parser_line, parse_nginx_line
+from logsight.detector import detect_anomalies
 
 
 app = FastAPI(
@@ -47,10 +48,12 @@ def analyze_logs(request: AnalyzeRequest) -> dict:
             records.append(record)
 
     summary = analyze_records(records)
+    anomalies = detect_anomalies(records)
 
     return {
         "log_format": request.log_format,
         "valid_lines": len(records),
         "invalid_lines": invalid_lines,
         "summary": summary,
+        "anomalies": anomalies,
     }

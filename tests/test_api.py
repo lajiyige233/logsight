@@ -39,7 +39,14 @@ def test_analyze_nginx_logs():
     assert response.status_code == 200
 
     result = response.json()
-
+    assert result["anomalies"] == [
+        {
+            "type": "high_server_error_rate",
+            "severity": "high",
+            "value": 0.5,
+            "threshold": 0.1,
+        }
+    ]
     assert result["valid_lines"] == 2
     assert result["invalid_lines"] == 1
     assert result["summary"]["total_requests"] == 2
@@ -48,6 +55,9 @@ def test_analyze_nginx_logs():
         "500": 1,
     }
     assert result["summary"]["server_error_rate"] == 0.5
+    assert len(result["anomalies"]) == 1
+    assert result["anomalies"][0]["type"] == "high_server_error_rate"
+    assert result["anomalies"][0]["value"] == 0.5
 
 
 def test_rejects_unknown_log_format():
