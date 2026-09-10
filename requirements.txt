@@ -1,3 +1,5 @@
 fastapi[standard-no-fastapi-cloud-cli]
 pydantic
 pytest
+openai
+python-dotenv

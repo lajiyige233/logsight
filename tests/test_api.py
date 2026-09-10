@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from openai import OpenAIError
 
 from logsight.api import app
 
@@ -82,3 +83,105 @@ def test_rejects_empty_lines():
     )
 
     assert response.status_code == 422
+
+def test_analyze_can_include_llm_report(monkeypatch):
+    def fake_generate_report(
+        summary: dict,
+        anomalies: list[dict],
+    ) -> str:
+        assert summary["total_requests"] == 1
+        assert len(anomalies) == 2
+        return "这是一份模拟的日志分析报告"
+
+    monkeypatch.setattr(
+        "logsight.api.generate_report",
+        fake_generate_report,
+    )
+
+    response = client.post(
+        "/analyze",
+        json={
+            "log_format": "simple",
+            "include_report": True,
+            "lines": [
+                (
+                    "192.168.1.10 "
+                    "2026-09-10T12:00:00 "
+                    "GET /api/users 500 1.2"
+                )
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["report"] == (
+        "这是一份模拟的日志分析报告"
+    )
+
+
+def test_analyze_reports_missing_llm_config(monkeypatch):
+    def fake_generate_report(
+        summary: dict,
+        anomalies: list[dict],
+    ) -> str:
+        raise RuntimeError(
+            "缺少环境变量 LOGSIGHT_LLM_API_KEY"
+        )
+
+    monkeypatch.setattr(
+        "logsight.api.generate_report",
+        fake_generate_report,
+    )
+
+    response = client.post(
+        "/analyze",
+        json={
+            "log_format": "simple",
+            "include_report": True,
+            "lines": [
+                (
+                    "192.168.1.10 "
+                    "2026-09-10T12:00:00 "
+                    "GET /health 200 0.1"
+                )
+            ],
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "缺少环境变量 LOGSIGHT_LLM_API_KEY"
+    )
+
+
+def test_analyze_reports_llm_connection_failure(monkeypatch):
+    def fake_generate_report(
+        summary: dict,
+        anomalies: list[dict],
+    ) -> str:
+        raise OpenAIError("connection failed")
+
+    monkeypatch.setattr(
+        "logsight.api.generate_report",
+        fake_generate_report,
+    )
+
+    response = client.post(
+        "/analyze",
+        json={
+            "log_format": "simple",
+            "include_report": True,
+            "lines": [
+                (
+                    "192.168.1.10 "
+                    "2026-09-10T12:00:00 "
+                    "GET /health 200 0.1"
+                )
+            ],
+        },
+    )
+
+    assert response.status_code == 502
+    assert response.json()["detail"] == (
+        "LLM 服务暂时不可用"
+    )
